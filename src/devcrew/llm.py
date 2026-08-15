@@ -1,9 +1,10 @@
 import os
 
+from dotenv import load_dotenv
 from groq import Groq
 
+load_dotenv()
 _client: Groq | None = None
-
 
 def get_client() -> Groq:
     """Return a process-wide Groq client, creating it on first use."""
@@ -20,7 +21,6 @@ def get_model() -> str:
 
 def complete(system: str, user: str, max_tokens: int = 2000) -> str:
     """Send a single-turn request and return the response text.
-
     Every node uses this same call shape so token usage and model choice
     stay consistent across Planner, Coder, Tester, and Reviewer. Groq's
     API follows OpenAI's chat completions shape, so system/user go in
