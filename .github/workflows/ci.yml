@@ -25,7 +25,10 @@ jobs:
         run: ruff check src tests
 
       - name: Run tests
-        # No GROQ_API_KEY is set here on purpose: the live Planner/Coder
-        # chain tests skip gracefully without one, so CI stays free and fast.
-        # Add the secret later if we want live-chain tests gated in CI.
+        # GROQ_API_KEY is passed in from the repo's Actions secret, so the
+        # live Planner/Coder/Tester/Reviewer chain tests actually run in CI
+        # instead of skipping. If the secret is ever removed, these tests
+        # skip gracefully rather than failing.
+        env:
+          GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
         run: pytest
