@@ -5,9 +5,10 @@ on:
     branches: [main]
   pull_request:
     branches: [main]
+  workflow_dispatch:
 
 jobs:
-  lint-and-test:
+  lint-and-unit-tests:
     runs-on: ubuntu-latest
 
     steps:
@@ -24,11 +25,25 @@ jobs:
       - name: Lint
         run: ruff check src tests
 
-      - name: Run tests
-        # GROQ_API_KEY is passed in from the repo's Actions secret, so the
-        # live Planner/Coder/Tester/Reviewer chain tests actually run in CI
-        # instead of skipping. If the secret is ever removed, these tests
-        # skip gracefully rather than failing.
+      - name: Run fast tests (no live LLM calls)
+        run: pytest
+
+  live-tests:
+    runs-on: ubuntu-latest
+    if: github.event_name == 'workflow_dispatch'
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: "pip"
+
+      - name: Install dependencies
+        run: pip install -r requirements-dev.txt
+
+      - name: Run full test suite including live LLM calls
         env:
           GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
-        run: pytest
+        run: pytest -v
