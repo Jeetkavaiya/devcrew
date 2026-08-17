@@ -98,6 +98,7 @@ def test_reviewer_backstop_does_not_touch_genuine_rejection():
 
 
 # Live tests: full graph execution against real Groq calls
+@pytest.mark.live_llm
 @pytest.mark.skipif(GROQ_KEY_MISSING, reason="GROQ_API_KEY not set")
 def test_full_loop_reaches_approval_or_cap():
     """Run the full graph on a task and confirm the loop terminates
@@ -124,6 +125,7 @@ def test_full_loop_reaches_approval_or_cap():
         assert result["iteration_count"] >= get_max_iterations()
 
 
+@pytest.mark.live_llm
 @pytest.mark.skipif(GROQ_KEY_MISSING, reason="GROQ_API_KEY not set")
 def test_loop_can_take_multiple_iterations():
     """Feed the graph a task that is easy to get subtly wrong on the

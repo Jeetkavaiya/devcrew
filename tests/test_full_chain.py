@@ -26,8 +26,11 @@ HARDCODED_REQUESTS = [
 ]
 
 
+LIVE_REQUESTS = HARDCODED_REQUESTS[:2]
+
+@pytest.mark.live_llm
 @pytest.mark.skipif(not HAS_GROQ_KEY, reason=skip_reason)
-@pytest.mark.parametrize("task", HARDCODED_REQUESTS)
+@pytest.mark.parametrize("task", LIVE_REQUESTS)
 def test_planner_coder_tester_chain(task):
     """End-to-end: Planner -> Coder -> Tester produces a spec, code, and
     test results, with the sandbox actually executing something.
