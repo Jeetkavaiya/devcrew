@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from devcrew.llm import complete
 from devcrew.sandbox import run_pytest_on_files
+from devcrew.spec_utils import extract_function_name
 from devcrew.state import DevCrewState
 
 TESTER_SYSTEM_PROMPT = """\
@@ -31,39 +32,6 @@ from solution import {function_name}
 """
 
 
-def _extract_function_name(spec: str) -> str:
-    """Best-effort extraction of the target function name from the spec.
-
-    ASSUMPTION (flagging explicitly since I don't have planner.py's actual
-    output format in front of me): this assumes the Planner's spec text
-    contains the function name in a recognizable way, e.g. a line like
-    "Function name: top_spending_categories" or a `def name(...)` signature
-    embedded in the spec. If your actual spec format differs, this is the
-    one function to adjust — everything downstream just consumes whatever
-    string it returns.
-
-    Falls back to a generic placeholder name if nothing is found, and the
-    prompt template still works (the LLM can infer the name from context),
-    but explicit extraction is preferred so the import line in the test
-    file is guaranteed to match what the Coder actually named the function.
-    """
-    import re
-
-    def_match = re.search(r"\bdef\s+([a-zA-Z_][a-zA-Z0-9_]*)\s*\(", spec)
-    if def_match:
-        return def_match.group(1)
-
-    label_match = re.search(
-        r"function\s*name\s*[:\-]\s*`?([a-zA-Z_][a-zA-Z0-9_]*)`?",
-        spec,
-        re.IGNORECASE,
-    )
-    if label_match:
-        return label_match.group(1)
-
-    return "solution_function"
-
-
 def _strip_code_fences(text: str) -> str:
     """Defensive cleanup in case the LLM wraps output in ```python fences
     despite being told not to. Mirrors the kind of guard you'd want on any
@@ -91,7 +59,7 @@ def tester_node(state: DevCrewState) -> dict:
     spec = state["spec"]
     code = state["code"]
 
-    function_name = _extract_function_name(spec)
+    function_name = extract_function_name(spec)
 
     raw_test_code = complete(
         system=TESTER_SYSTEM_PROMPT,

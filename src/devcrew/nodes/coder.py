@@ -12,23 +12,33 @@ looks plausible.
 
 Rules:
 - Output only a Python code block, nothing else.
+- Name the function exactly as given on the spec's "Function name:" line.
 - Include type hints on the function signature.
 - Handle every edge case listed in the spec explicitly.
 - If revision feedback is provided, treat it as the primary thing to fix.
 """
 
-_FENCE_PATTERN = re.compile(r"^```(?:python)?\s*\n(.*?)\n?```\s*$", re.DOTALL)
+_FENCE_PATTERN = re.compile(r"```(?:python)?\s*\n(.*?)```", re.DOTALL)
 
 
 def _strip_code_fence(text: str) -> str:
-    """Strip a leading/trailing markdown code fence if present.
+    """Extract code from a markdown fence anywhere in the response.
 
     Models frequently wrap code in ```python ... ``` despite instructions
     to output only code. Downstream nodes (Tester, sandbox executor,
     Reviewer) expect state["code"] to be bare, executable Python.
+
+    Searches for a fenced block anywhere in the text rather than requiring
+    the whole response to be exactly one fence, since revision turns often
+    produce surrounding prose (e.g. "Here's the corrected version:" followed
+    by a fenced block) that a whole-string anchor misses entirely, silently
+    letting fences through unstripped.
+
+    Note: if the model ever emits more than one fenced block, this takes
+    the first one. Falls back to the stripped raw text if no fence is found.
     """
     stripped = text.strip()
-    match = _FENCE_PATTERN.match(stripped)
+    match = _FENCE_PATTERN.search(stripped)
     return match.group(1).strip() if match else stripped
 
 

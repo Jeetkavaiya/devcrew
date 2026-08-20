@@ -53,12 +53,15 @@ def parse_args():
 
 
 def extract_test_status(test_results) -> str:
-    """Mirror the Reviewer's own backstop check: look for 'status: passed' in test_results."""
     text = str(test_results or "").lower()
     if "status: passed" in text:
         return "passed"
     if "status: failed" in text:
         return "failed"
+    if "status: error" in text:
+        return "error"
+    if "status: timed out" in text:
+        return "timed_out"
     return "unknown"
 
 
