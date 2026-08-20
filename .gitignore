@@ -11,3 +11,5 @@ venv/
 .DS_Store
 dist/
 build/
+.streamlit/secrets.toml
+eval_results/
