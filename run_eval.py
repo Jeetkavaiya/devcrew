@@ -120,6 +120,8 @@ def run_eval(tasks: list, output_path: Path, delay: float = 20.0,
                 "test_status": extract_test_status(final_state.get("test_results")),
                 "elapsed_seconds": elapsed,
                 "error": None,
+                "test_results": final_state.get("test_results"),
+                "review_feedback": final_state.get("review_feedback"),
             })
             status_label = "PASS" if record["approved"] else "FAIL"
             print(f"    -> {status_label} in {record['iteration_count']} iteration(s), {elapsed}s")
