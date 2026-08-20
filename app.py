@@ -1,12 +1,3 @@
-"""
-DevCrew — Streamlit frontend for the Planner -> Coder -> Tester -> Reviewer
-multi-agent coding pipeline.
-
-Calls the deployed FastAPI /task endpoint on Render and renders the full
-DevCrewState trace: the final code, an iteration stepper, and expandable
-per-agent detail cards.
-"""
-
 import json
 import time
 
@@ -184,6 +175,45 @@ st.markdown(
         background-color: #0D1117;
         border-right: 1px solid #21262D;
     }
+    section[data-testid="stSidebar"],
+    section[data-testid="stSidebar"] * {
+        color: #E6EDF3 !important;
+    }
+    section[data-testid="stSidebar"] a {
+        color: #79C0FF !important;
+    }
+
+    /* Expanders default to light-mode text colors regardless of the app's
+       dark background; force them explicitly, header and body both. */
+    div[data-testid="stExpander"] {
+        background-color: #161B22 !important;
+        border: 1px solid #30363D !important;
+        border-radius: 8px !important;
+    }
+    div[data-testid="stExpander"] summary {
+        background-color: #161B22 !important;
+        color: #E6EDF3 !important;
+    }
+    div[data-testid="stExpander"] summary * {
+        color: #E6EDF3 !important;
+    }
+    div[data-testid="stExpander"] div[data-testid="stExpanderDetails"] {
+        background-color: #0D1117 !important;
+        color: #E6EDF3 !important;
+    }
+    div[data-testid="stExpander"] div[data-testid="stExpanderDetails"] *:not(.agent-chip) {
+        color: #E6EDF3 !important;
+    }
+
+    /* Catch-all: any markdown/caption text anywhere in the app should be
+       light-on-dark unless a more specific rule above overrides it.
+       Excludes .agent-chip, which sets its own inline per-agent color. */
+    .stMarkdown, .stCaption, .stCaption * {
+        color: #E6EDF3 !important;
+    }
+    .stMarkdown *:not(.agent-chip) {
+        color: #E6EDF3 !important;
+    }
     </style>
     """,
     unsafe_allow_html=True,
@@ -303,6 +333,8 @@ def render_result(result: dict):
             notes = entry.get("notes", "").strip()
             st.text(notes if notes else "(no notes recorded for this iteration)")
             st.divider()
+
+
 
 # Sidebar: example run vs live call
 with st.sidebar:
