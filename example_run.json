@@ -1,0 +1,21 @@
+{
+  "task": "Write a function that checks if a number is prime",
+  "spec": "Function name: is_prime\n\nWrite a function `is_prime(n)` that returns True if the integer n is a prime number, and False otherwise.\n\nRequirements:\n- Accepts a single integer argument n\n- Returns True for prime numbers (2, 3, 5, 7, 11, ...)\n- Returns False for non-prime integers, including 0, 1, and negative numbers\n- Returns False (not an error) for non-integer input\n- Must run in better than O(n) time for reasonably large n (use trial division up to sqrt(n))",
+  "code": "def is_prime(n):\n    if not isinstance(n, int) or isinstance(n, bool):\n        return False\n    if n < 2:\n        return False\n    if n in (2, 3):\n        return True\n    if n % 2 == 0:\n        return False\n    i = 3\n    while i * i <= n:\n        if n % i == 0:\n            return False\n        i += 2\n    return True\n",
+  "tests": "import pytest\nfrom solution import is_prime\n\n\ndef test_small_primes():\n    assert is_prime(2) is True\n    assert is_prime(3) is True\n    assert is_prime(5) is True\n    assert is_prime(7) is True\n\n\ndef test_small_non_primes():\n    assert is_prime(0) is False\n    assert is_prime(1) is False\n    assert is_prime(4) is False\n    assert is_prime(9) is False\n\n\ndef test_negative_numbers():\n    assert is_prime(-7) is False\n\n\ndef test_larger_prime():\n    assert is_prime(97) is True\n\n\ndef test_larger_non_prime():\n    assert is_prime(100) is False\n\n\ndef test_non_integer_input():\n    assert is_prime(\"7\") is False\n    assert is_prime(3.5) is False\n",
+  "test_results": "collected 6 items\n\ntest_solution.py::test_small_primes PASSED\ntest_solution.py::test_small_non_primes PASSED\ntest_solution.py::test_negative_numbers PASSED\ntest_solution.py::test_larger_prime PASSED\ntest_solution.py::test_larger_non_prime PASSED\ntest_solution.py::test_non_integer_input PASSED\n\nstatus: passed\n6 passed in 0.02s",
+  "review_feedback": [
+    {
+      "iteration": 1,
+      "approved": false,
+      "notes": "Tests pass, but the isinstance(n, int) check as written would accept True/False as valid input since bool is a subclass of int in Python, silently treating is_prime(True) as is_prime(1). Spec requires non-integer input to return False; booleans should be excluded explicitly."
+    },
+    {
+      "iteration": 2,
+      "approved": true,
+      "notes": "Boolean exclusion added via isinstance(n, bool) check before the int check. All 6 tests pass, including the non-integer input case. Trial division is bounded by sqrt(n) as required. Approved."
+    }
+  ],
+  "iteration_count": 2,
+  "approved": true
+}
