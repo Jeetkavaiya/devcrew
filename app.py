@@ -32,57 +32,11 @@ st.markdown(
     <style>
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap');
 
-    html, body, [class*="css"]  {
+    html, body, [class*="css"] {
         font-family: 'Inter', sans-serif;
     }
-
-    .stApp {
-        background-color: #0D1117;
-        color: #E6EDF3;
-    }
-
-    code, pre, .stCodeBlock, .stCode {
+    code, pre {
         font-family: 'IBM Plex Mono', monospace !important;
-    }
-
-    /* Streamlit's st.code() renders its own light-themed syntax block by
-       default; override its container, pre, and syntax-token colors so it
-       matches the rest of the dark UI instead of showing a white panel. */
-    div[data-testid="stCodeBlock"] {
-        background-color: #161B22 !important;
-        border: 1px solid #30363D !important;
-        border-radius: 8px !important;
-    }
-    div[data-testid="stCodeBlock"] pre {
-        background-color: #161B22 !important;
-    }
-    div[data-testid="stCodeBlock"] code {
-        background-color: transparent !important;
-        color: #E6EDF3 !important;
-    }
-    div[data-testid="stCodeBlock"] * {
-        background-color: transparent !important;
-    }
-    /* Pygments token classes Streamlit emits inside code blocks */
-    div[data-testid="stCodeBlock"] .token.keyword,
-    div[data-testid="stCodeBlock"] .token.keyword.control { color: #FF7B72 !important; }
-    div[data-testid="stCodeBlock"] .token.builtin,
-    div[data-testid="stCodeBlock"] .token.function { color: #D2A8FF !important; }
-    div[data-testid="stCodeBlock"] .token.string { color: #A5D6FF !important; }
-    div[data-testid="stCodeBlock"] .token.number,
-    div[data-testid="stCodeBlock"] .token.boolean { color: #79C0FF !important; }
-    div[data-testid="stCodeBlock"] .token.comment { color: #8B949E !important; }
-    div[data-testid="stCodeBlock"] .token.operator,
-    div[data-testid="stCodeBlock"] .token.punctuation { color: #E6EDF3 !important; }
-
-    /* st.text() blocks (test output, review notes) also default to a
-       light panel via the same underlying component */
-    div[data-testid="stText"] {
-        background-color: #161B22 !important;
-        border: 1px solid #30363D !important;
-        border-radius: 8px !important;
-        color: #E6EDF3 !important;
-        padding: 0.75rem 1rem !important;
     }
 
     .devcrew-hero {
@@ -96,16 +50,17 @@ st.markdown(
         font-weight: 600;
         font-size: 2.1rem;
         margin: 0;
-        color: #E6EDF3;
         letter-spacing: -0.02em;
     }
     .devcrew-tagline {
-        color: #8B949E;
         font-size: 0.95rem;
         margin-top: 0;
         margin-bottom: 1.6rem;
+        opacity: 0.75;
     }
 
+    /* Per-agent accent chip — sets its own inline color per call, this
+       just defines the shape */
     .agent-chip {
         display: inline-flex;
         align-items: center;
@@ -118,6 +73,7 @@ st.markdown(
         border: 1px solid currentColor;
     }
 
+    /* Iteration stepper — custom component, not covered by native theme */
     .stepper-track {
         display: flex;
         align-items: center;
@@ -150,6 +106,7 @@ st.markdown(
         font-size: 0.9rem;
     }
 
+    /* Final status banner — custom component, not covered by native theme */
     .final-status-pass {
         border: 1px solid #7EE787;
         background: rgba(126, 231, 135, 0.08);
@@ -169,50 +126,6 @@ st.markdown(
         font-family: 'IBM Plex Mono', monospace;
         font-size: 0.9rem;
         margin-bottom: 1rem;
-    }
-
-    section[data-testid="stSidebar"] {
-        background-color: #0D1117;
-        border-right: 1px solid #21262D;
-    }
-    section[data-testid="stSidebar"],
-    section[data-testid="stSidebar"] * {
-        color: #E6EDF3 !important;
-    }
-    section[data-testid="stSidebar"] a {
-        color: #79C0FF !important;
-    }
-
-    /* Expanders default to light-mode text colors regardless of the app's
-       dark background; force them explicitly, header and body both. */
-    div[data-testid="stExpander"] {
-        background-color: #161B22 !important;
-        border: 1px solid #30363D !important;
-        border-radius: 8px !important;
-    }
-    div[data-testid="stExpander"] summary {
-        background-color: #161B22 !important;
-        color: #E6EDF3 !important;
-    }
-    div[data-testid="stExpander"] summary * {
-        color: #E6EDF3 !important;
-    }
-    div[data-testid="stExpander"] div[data-testid="stExpanderDetails"] {
-        background-color: #0D1117 !important;
-        color: #E6EDF3 !important;
-    }
-    div[data-testid="stExpander"] div[data-testid="stExpanderDetails"] *:not(.agent-chip) {
-        color: #E6EDF3 !important;
-    }
-
-    /* Catch-all: any markdown/caption text anywhere in the app should be
-       light-on-dark unless a more specific rule above overrides it.
-       Excludes .agent-chip, which sets its own inline per-agent color. */
-    .stMarkdown, .stCaption, .stCaption * {
-        color: #E6EDF3 !important;
-    }
-    .stMarkdown *:not(.agent-chip) {
-        color: #E6EDF3 !important;
     }
     </style>
     """,
@@ -305,22 +218,22 @@ def render_result(result: dict):
     st.subheader("Pipeline trace")
     render_stepper(result.get("review_feedback", []))
 
-    with st.expander(f"PLANNER — Spec"):
+    with st.expander("PLANNER — Spec"):
         st.markdown(agent_chip("planner"), unsafe_allow_html=True)
         st.text(result.get("spec", "(no spec returned)"))
 
-    with st.expander(f"CODER — Code"):
+    with st.expander("CODER — Code"):
         st.markdown(agent_chip("coder"), unsafe_allow_html=True)
         st.code(result.get("code", ""), language="python")
 
-    with st.expander(f"TESTER — Tests + results"):
+    with st.expander("TESTER — Tests + results"):
         st.markdown(agent_chip("tester"), unsafe_allow_html=True)
         st.caption("Generated tests")
         st.code(result.get("tests", ""), language="python")
         st.caption("Sandbox run output")
         st.text(result.get("test_results", "(no test results returned)"))
 
-    with st.expander(f"REVIEWER — Review history"):
+    with st.expander("REVIEWER — Review history"):
         st.markdown(agent_chip("reviewer"), unsafe_allow_html=True)
         review_feedback = result.get("review_feedback", [])
         if not review_feedback:
@@ -333,7 +246,6 @@ def render_result(result: dict):
             notes = entry.get("notes", "").strip()
             st.text(notes if notes else "(no notes recorded for this iteration)")
             st.divider()
-
 
 
 # Sidebar: example run vs live call
@@ -353,6 +265,7 @@ with st.sidebar:
         "Live runs call the Groq API on a free-tier quota, so responses "
         "may occasionally be slow or fail if quota is exhausted."
     )
+
 
 # Main: example run (default view) + live run form
 example_run = load_example_run()
