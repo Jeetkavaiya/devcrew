@@ -2,7 +2,7 @@
 
 A multi-agent coding pipeline built on LangGraph. Four LLM agents — **Planner → Coder → Tester → Reviewer** — collaborate through a self-correcting revision loop to turn a plain-English request into tested, reviewed Python code.
 
-**Live demo:** [devcrew-gmja.onrender.com](https://devcrew-gmja.onrender.com/docs) (Swagger UI) · **Frontend:** run the [Streamlit app](#streamlit-frontend) locally against the live API
+**Live demo:** [devcrew.streamlit.app](https://devcrew.streamlit.app/) · **API docs:** [devcrew-gmja.onrender.com](https://devcrew-gmja.onrender.com/docs) (Swagger UI)
 
 ---
 
@@ -118,18 +118,16 @@ docker run -p 8000:8000 --env-file .env devcrew
 
 DevCrew is evaluated against a 15-task benchmark spanning basic algorithms, string manipulation, and data-structure problems, run end-to-end through the real pipeline (not mocked) using `openai/gpt-oss-120b` via Groq.
 
-**Current result: 3/15 tasks passed.**
+**Result: 15/15 tasks passed (100%), averaging 1.67 iterations per task.**
 
-This is a **partial, in-progress run** — Groq's free-tier rate limit (TPM, not the daily quota) interrupted the run before all 15 tasks completed, and it predates a round of pipeline bug fixes described below. It is not a final pass rate, and a fresh full run is the last item blocking this project's "done" state. See [Known limitations](#known-limitations) below.
+### Getting here
 
-### What the bug fixes changed
-
-Two convergence bugs were found and fixed after the 3/15 run:
+An earlier run stalled at 3/15 (TPM rate-limited) and surfaced two real convergence bugs, both fixed before the full run above:
 
 - **Fence-stripping regression** — the Coder's markdown-fence stripper was anchored to match the entire response, so on revision turns (where the model adds surrounding prose like "Here's the corrected version:") the fences shipped straight into the test sandbox unstripped, causing spurious syntax errors.
 - **Coder/Tester function-name mismatch** — the Tester independently guessed the function name from the spec text via regex, which frequently didn't match what the Coder actually named the function, causing import errors at test-collection time.
 
-Using a single smoke-test task ("max of two numbers") as a repeatable probe: before the fixes, this task failed to converge in 5 iterations, twice in a row. After the fixes, it passed in **1 iteration** on `gpt-oss-20b` and **2 iterations** on `gpt-oss-120b`. This is n=1 evidence, not a benchmark result — but it's consistent with what the bugs would predict, and a full 15-task re-run is the next step to confirm it at scale.
+As an early signal before the full re-run, a single smoke-test task ("max of two numbers") was used as a repeatable probe: before the fixes, it failed to converge in 5 iterations, twice in a row; after the fixes, it passed in 1 iteration on `gpt-oss-20b` and 2 iterations on `gpt-oss-120b`. The full 15-task run above confirms that at scale.
 
 ### Re-running the eval
 
@@ -137,11 +135,10 @@ Using a single smoke-test task ("max of two numbers") as a repeatable probe: bef
 python run_eval.py --resume --output eval_results/eval_20260818_174608.json
 ```
 
-`--resume` continues from the 3 already-passed tasks and runs the remaining 12 with the fixes live.
+`--resume` skips already-completed tasks and only runs what's missing — useful if a run gets interrupted mid-way by a transient rate limit.
 
 ## Known limitations
 
-- **Eval is incomplete.** The 15-task benchmark has only reached 3/15 (TPM-limited, not TPD-exhausted), and this predates the bug fixes above. A full re-run is pending Groq quota availability.
 - **Groq free-tier quota** caps both requests-per-minute and tokens-per-day, which constrains how much of the pipeline (including its own eval harness) can run in a single session.
 - **`gpt-oss-20b`** works for fast syntax/quota smoke-testing but does not reliably converge on real eval tasks — it's a dev fallback, not an eval model.
 
@@ -162,7 +159,3 @@ devcrew/
 ├── Dockerfile
 └── .github/workflows/     # CI/CD
 ```
-
-## License
-
-MIT
