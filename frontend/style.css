@@ -36,6 +36,11 @@ html { scroll-behavior: smooth; }
   }
 }
 
+html, body {
+  max-width: 100%;
+  overflow-x: hidden;
+}
+
 body {
   margin: 0;
   background: var(--bg);
@@ -662,7 +667,70 @@ pre code { font-family: var(--font-mono) !important; }
 .error-banner strong { color: var(--red); }
 
 @media (max-width: 640px) {
-  .task-form { flex-direction: column; }
+  .topbar {
+    padding: 20px 16px 0;
+    gap: 12px;
+  }
+
+  .topbar-links {
+    gap: 14px;
+    font-size: 12px;
+  }
+
+  main { padding: 0 16px 60px; }
+
+  .hero { padding-top: 36px; }
+
+  .hero-sub { font-size: 14.5px; }
+
+  .task-form {
+    flex-direction: column;
+    max-width: 100%;
+  }
+
+  /* The 380px flex-basis was written for row layout, where it sets a
+     starting width. In column layout it becomes a height basis, and
+     flex-grow: 1 then stretches the input row to fill the form's
+     vertical space. Reset both so it only takes the height its content
+     needs. */
+  .task-input-row {
+    flex: 0 0 auto;
+    width: 100%;
+  }
+
   #submit-btn { width: 100%; justify-content: center; }
+
+  .schematic-section { padding: 20px 14px 14px; }
+
   .schematic-status { font-size: 11px; }
+
+  .loop-label { display: none; }
+
+  pre {
+    padding: 14px 14px;
+    font-size: 12.5px;
+    max-width: 100%;
+  }
+
+  .iteration-header {
+    padding: 12px 14px;
+    font-size: 12.5px;
+    flex-wrap: wrap;
+  }
+
+  .results-summary {
+    padding: 14px 16px;
+    font-size: 13px;
+  }
+
+  .section-label { font-size: 18px; }
+}
+
+@media (max-width: 420px) {
+  .topbar-links {
+    gap: 10px;
+    font-size: 11px;
+  }
+
+  .wordmark { font-size: 13px; }
 }
