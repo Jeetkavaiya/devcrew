@@ -9,6 +9,24 @@ class ReviewFeedback(TypedDict):
     notes: str
 
 
+class IterationSnapshot(TypedDict):
+    """A full snapshot of one pass through Coder -> Tester -> Reviewer.
+
+    Unlike `code` / `tests` / `test_results` on DevCrewState, which are
+    overwritten on every revision loop, entries here are appended and kept
+    around for the life of the run. This exists so consumers (e.g. the API
+    response, a frontend trace view) can render what changed at each
+    iteration rather than only the final approved result.
+    """
+
+    iteration: int
+    code: str
+    tests: str
+    test_results: str
+    approved: bool
+    notes: str
+
+
 class DevCrewState(TypedDict):
     """Shared state object passed between every node in the LangGraph.
 
@@ -34,6 +52,10 @@ class DevCrewState(TypedDict):
 
     # Written by Reviewer: the full history of feedback across iterations
     review_feedback: list[ReviewFeedback]
+
+    # Written by Reviewer: a full code/tests/results snapshot per iteration,
+    # for rendering the complete revision trace (not just final state)
+    iterations: list[IterationSnapshot]
 
     # Incremented each time the graph loops back to Coder
     iteration_count: int

@@ -1,10 +1,17 @@
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 
 from devcrew.graph import build_graph
-from devcrew.state import ReviewFeedback
+from devcrew.state import IterationSnapshot, ReviewFeedback
 
 app = FastAPI(title="DevCrew API")
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 _graph = build_graph()
 
@@ -22,6 +29,7 @@ class TaskResponse(BaseModel):
     approved: bool
     iteration_count: int
     review_feedback: list[ReviewFeedback]
+    iterations: list[IterationSnapshot]
 
 
 def _initial_state(task: str) -> dict:
@@ -35,6 +43,7 @@ def _initial_state(task: str) -> dict:
         "tests": "",
         "test_results": "",
         "review_feedback": [],
+        "iterations": [],
         "iteration_count": 0,
         "approved": False,
     }
@@ -58,6 +67,7 @@ def run_task(request: TaskRequest) -> TaskResponse:
         approved=result["approved"],
         iteration_count=result["iteration_count"],
         review_feedback=result["review_feedback"],
+        iterations=result.get("iterations", []),
     )
 
 

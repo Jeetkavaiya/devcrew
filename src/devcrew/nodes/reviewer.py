@@ -118,8 +118,22 @@ def reviewer_node(state: DevCrewState) -> dict:
         }
     )
 
+    # Full per-iteration snapshot (code/tests/results as they stood on this pass)
+    iterations = list(state.get("iterations") or [])
+    iterations.append(
+        {
+            "iteration": iteration_count,
+            "code": state["code"],
+            "tests": state["tests"],
+            "test_results": state["test_results"],
+            "approved": approved,
+            "notes": notes,
+        }
+    )
+
     return {
         "approved": approved,
         "review_feedback": feedback_history,
+        "iterations": iterations,
         "iteration_count": iteration_count,
     }
