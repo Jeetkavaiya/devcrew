@@ -2,7 +2,7 @@
 
 A multi-agent coding pipeline built on LangGraph. Four LLM agents — **Planner → Coder → Tester → Reviewer** — collaborate through a self-correcting revision loop to turn a plain-English request into tested, reviewed Python code.
 
-**Live demo:** [devcrew.streamlit.app](https://devcrew.streamlit.app/) · **API docs:** [devcrew-gmja.onrender.com](https://devcrew-gmja.onrender.com/docs) (Swagger UI)
+**Live demo:** [devcrew-nine.vercel.app](https://devcrew-nine.vercel.app/)
 
 ---
 
@@ -15,7 +15,7 @@ You give DevCrew a task in plain English — `"write a function that checks if a
 3. **Tester** generates a pytest suite and runs the code in a sandbox.
 4. **Reviewer** reads the code, the spec, and the test results, and either approves the result or sends it back to the Coder with specific feedback.
 
-If the Reviewer rejects, the loop repeats — Coder revises, Tester re-runs, Reviewer re-checks — until the code is approved or an iteration cap is hit. The whole exchange, including every rejection and the reasoning behind it, is preserved in the final response.
+If the Reviewer rejects, the loop repeats — Coder revises, Tester re-runs, Reviewer re-checks — until the code is approved or an iteration cap is hit. The whole exchange, including every rejection and the reasoning behind it, is preserved in the final response and rendered as a full revision timeline in the frontend, not just the final answer.
 
 ## Architecture
 
@@ -45,7 +45,7 @@ If the Reviewer rejects, the loop repeats — Coder revises, Tester re-runs, Rev
               (revision loop)
 ```
 
-Each node reads and writes a shared `DevCrewState` object; LangGraph handles the routing and the conditional edge back to the Coder on rejection.
+Each node reads and writes a shared `DevCrewState` object; LangGraph handles the routing and the conditional edge back to the Coder on rejection. The Reviewer also appends a full code/tests/results snapshot per iteration, so the API — and the frontend — can render exactly what changed on every pass, not just the final state.
 
 ## Tech stack
 
@@ -55,11 +55,21 @@ Each node reads and writes a shared `DevCrewState` object; LangGraph handles the
 | LLM provider | [Groq](https://groq.com) (OpenAI-compatible API, free tier) |
 | API | FastAPI |
 | Sandboxed testing | pytest, run per-iteration against generated code |
-| Frontend | Streamlit |
+| Frontend | Static HTML/CSS/JS, deployed on Vercel |
 | CI/CD | GitHub Actions → auto-deploy on Render |
 | Containerization | Docker |
 
 ## Try it
+
+### Live demo
+
+```
+https://devcrew-nine.vercel.app/
+```
+
+A static frontend that calls the live Render API directly from the browser. Submit a task and watch it move through the pipeline; if the Reviewer rejects a submission, expand the revision timeline to see each iteration's code, tests, test output, and reviewer notes — not just the final approved result.
+
+The backend runs on Render's free tier, which sleeps after periods of inactivity — the first request after a cold start can take up to 30 seconds to wake it back up.
 
 ### API
 
@@ -77,24 +87,6 @@ curl -X POST https://devcrew-gmja.onrender.com/task \
   -d '{"task": "write a function that checks if a number is prime"}'
 ```
 
-### Streamlit frontend
-
-The Streamlit app renders the full agent trace — spec, code, test output, and every review iteration — rather than just the final answer, so you can actually see the pipeline working instead of a single opaque response.
-
-```bash
-git clone https://github.com/Jeetkavaiya/devcrew.git
-cd devcrew
-pip install -r requirements.txt
-
-# point the app at the live Render deployment
-cp .streamlit/secrets.toml.example .streamlit/secrets.toml
-# edit .streamlit/secrets.toml and set DEVCREW_API_URL
-
-streamlit run app.py
-```
-
-The app opens with a pre-recorded example run (no API call needed), and a "Try it live" tab to run a real task against the deployed pipeline.
-
 ### Local development
 
 ```bash
@@ -102,7 +94,7 @@ git clone https://github.com/Jeetkavaiya/devcrew.git
 cd devcrew
 pip install -r requirements.txt
 
-# .env: set GROQ_API_KEY and DEVCREW_MODEL (see .env.example)
+# .env: set GROQ_API_KEY and DEVCREW_MODEL
 
 uvicorn src.devcrew.api:app --reload
 ```
@@ -112,6 +104,12 @@ Or via Docker:
 ```bash
 docker build -t devcrew .
 docker run -p 8000:8000 --env-file .env devcrew
+```
+
+To run the frontend against a local backend instead of the live Render deployment, open `frontend/index.html` with a `?api=` override:
+
+```
+frontend/index.html?api=http://localhost:8000/task
 ```
 
 ## Evaluation
@@ -141,6 +139,7 @@ python run_eval.py --resume --output eval_results/eval_20260818_174608.json
 
 - **Groq free-tier quota** caps both requests-per-minute and tokens-per-day, which constrains how much of the pipeline (including its own eval harness) can run in a single session.
 - **`gpt-oss-20b`** works for fast syntax/quota smoke-testing but does not reliably converge on real eval tasks — it's a dev fallback, not an eval model.
+- **Render free-tier cold starts** mean the first request to the live API after a period of inactivity can take up to ~30 seconds.
 
 ## Project structure
 
@@ -151,11 +150,16 @@ devcrew/
 │   ├── state.py         # shared DevCrewState schema
 │   ├── spec_utils.py    # shared spec-parsing helpers
 │   ├── llm.py           # model selection via DEVCREW_MODEL env var
-│   └── api.py           # FastAPI app, /task endpoint
-├── app.py                # Streamlit frontend
+│   └── api.py           # FastAPI app, /task endpoint, CORS
+├── frontend/             # static HTML/CSS/JS frontend, deployed on Vercel
+│   ├── index.html
+│   ├── style.css
+│   ├── script.js
+│   └── favicon.svg
 ├── run_eval.py            # eval harness
 ├── eval_results/          # eval run outputs (gitignored)
 ├── tests/                 # unit + live-LLM test suite
 ├── Dockerfile
 └── .github/workflows/     # CI/CD
+
 ```
