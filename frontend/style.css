@@ -114,6 +114,67 @@ a { color: var(--amber); }
   border-bottom-color: var(--amber);
 }
 
+.contact-menu {
+  position: relative;
+}
+
+.contact-trigger {
+  background: transparent;
+  border: none;
+  padding: 0;
+  color: var(--text-muted);
+  font-family: var(--font-mono);
+  font-size: 13px;
+  cursor: pointer;
+  border-bottom: 1px solid transparent;
+}
+
+.contact-trigger:hover,
+.contact-menu:hover .contact-trigger,
+.contact-menu:focus-within .contact-trigger {
+  color: var(--amber);
+  border-bottom-color: var(--amber);
+}
+
+.contact-dropdown {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  margin-top: 12px;
+  min-width: 130px;
+  background: var(--panel-raised);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 6px;
+  display: flex;
+  flex-direction: column;
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(-4px);
+  transition: opacity 0.15s ease, transform 0.15s ease, visibility 0.15s;
+  z-index: 20;
+}
+
+.contact-menu:hover .contact-dropdown,
+.contact-menu:focus-within .contact-dropdown {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0);
+}
+
+.contact-dropdown a {
+  padding: 8px 12px;
+  border-radius: 4px;
+  border-bottom: none !important;
+  white-space: nowrap;
+}
+
+.contact-dropdown a:hover,
+.contact-dropdown a:focus-visible {
+  background: var(--panel);
+  color: var(--amber);
+}
+
 /* ---------- hero ---------- */
 
 main {
@@ -135,9 +196,18 @@ main {
   margin: 0 0 18px;
 }
 
-.hero h1 {
+.hero-wordmark {
   font-family: var(--font-display);
-  font-size: clamp(32px, 5vw, 52px);
+  font-size: clamp(40px, 6.5vw, 64px);
+  font-weight: 600;
+  line-height: 1.12;
+  margin: 0 0 12px;
+  letter-spacing: -0.01em;
+}
+
+.hero h2 {
+  font-family: var(--font-display);
+  font-size: clamp(28px, 4.4vw, 46px);
   font-weight: 600;
   line-height: 1.12;
   margin: 0 0 20px;
