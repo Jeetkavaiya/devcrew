@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DevCrew - a coding request, argued over by four agents</title>
+<meta name="description" content="Submit a plain-English coding task and watch Planner, Coder, Tester, and Reviewer agents argue it out until the code passes.">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css">
+
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<header class="topbar">
+  <div class="wordmark">
+    <span class="wordmark-dot" aria-hidden="true"></span>
+    DEVCREW
+  </div>
+  <nav class="topbar-links">
+    <a href="https://github.com/Jeetkavaiya/devcrew" target="_blank" rel="noopener">source</a>
+    <a href="https://devcrew-gmja.onrender.com/docs" target="_blank" rel="noopener">api docs</a>
+  </nav>
+</header>
+
+<main>
+
+  <section class="hero">
+    <p class="eyebrow">planner &rarr; coder &rarr; tester &rarr; reviewer</p>
+    <h1>Four agents argue over your code<br>until it passes.</h1>
+    <p class="hero-sub">
+      Give it a task in plain English. A Planner writes the spec, a Coder implements it,
+      a Tester runs it in a sandbox, and a Reviewer either approves it or sends it back
+      with specific notes for another pass. You'll see every pass, not just the last one.
+    </p>
+
+    <form id="task-form" class="task-form" autocomplete="off">
+      <label for="task-input" class="visually-hidden">Describe the coding task</label>
+      <div class="task-input-row">
+        <span class="prompt-caret" aria-hidden="true">&gt;</span>
+        <input
+          type="text"
+          id="task-input"
+          name="task"
+          placeholder="write a function that checks if a number is prime"
+          maxlength="300"
+          required
+        >
+      </div>
+      <button type="submit" id="submit-btn">
+        <span class="btn-label">Dispatch to the crew</span>
+        <span class="btn-spinner" aria-hidden="true"></span>
+      </button>
+    </form>
+
+    <div class="chip-row" aria-label="Example tasks">
+      <span class="chip-hint">try:</span>
+      <button type="button" class="chip" data-task="write a function that reverses a string">reverse a string</button>
+      <button type="button" class="chip" data-task="write a function that merges two sorted lists">merge two sorted lists</button>
+      <button type="button" class="chip" data-task="write a function that checks if a string is a palindrome">check for a palindrome</button>
+    </div>
+  </section>
+
+  <section class="schematic-section" id="schematic-section">
+    <svg id="schematic" viewBox="0 0 900 260" role="img" aria-label="Pipeline diagram: Planner to Coder to Tester to Reviewer, with a revision loop from Reviewer back to Coder">
+      <!-- trace: planner -> coder -->
+      <path class="trace" d="M 155 70 H 300" />
+      <!-- trace: coder -> tester -->
+      <path class="trace" d="M 455 70 H 600" />
+      <!-- trace: tester -> reviewer -->
+      <path class="trace" d="M 755 70 H 745" />
+      <path class="trace" d="M 690 130 V 70 H 745" />
+      <!-- loop-back trace: reviewer -> coder -->
+      <path class="trace trace-loop" id="loop-trace" d="M 690 190 C 690 240, 380 240, 380 130" />
+      <circle class="loop-pulse" id="loop-pulse" r="5" cx="690" cy="190" />
+
+      <!-- Planner -->
+      <g class="node" data-node="planner" transform="translate(30,30)">
+        <rect width="125" height="80" rx="6"/>
+        <text class="node-label" x="62.5" y="34">PLANNER</text>
+        <text class="node-sub" x="62.5" y="54">writes spec</text>
+      </g>
+
+      <!-- Coder -->
+      <g class="node" data-node="coder" transform="translate(320,30)">
+        <rect width="135" height="80" rx="6"/>
+        <text class="node-label" x="67.5" y="34">CODER</text>
+        <text class="node-sub" x="67.5" y="54">implements</text>
+      </g>
+
+      <!-- Tester -->
+      <g class="node" data-node="tester" transform="translate(600,30)">
+        <rect width="125" height="80" rx="6"/>
+        <text class="node-label" x="62.5" y="34">TESTER</text>
+        <text class="node-sub" x="62.5" y="54">runs sandbox</text>
+      </g>
+
+      <!-- Reviewer -->
+      <g class="node" data-node="reviewer" transform="translate(627,130)">
+        <rect width="125" height="80" rx="6"/>
+        <text class="node-label" x="62.5" y="34">REVIEWER</text>
+        <text class="node-sub" x="62.5" y="54">approve / reject</text>
+      </g>
+
+      <text class="loop-label" x="500" y="234">revision loop &mdash; fires on rejection</text>
+    </svg>
+    <p class="schematic-status" id="schematic-status">idle</p>
+  </section>
+
+  <section class="results" id="results" hidden>
+
+    <div class="results-summary" id="results-summary"></div>
+
+    <div class="spec-block">
+      <h2 class="section-label">Spec <span class="section-label-sub">— written once, up front</span></h2>
+      <pre><code class="language-text" id="spec-code"></code></pre>
+    </div>
+
+    <div class="timeline">
+      <h2 class="section-label">Revision timeline</h2>
+      <div id="timeline-entries"></div>
+    </div>
+
+    <div class="final-block">
+      <h2 class="section-label">Final code</h2>
+      <div class="code-panel">
+        <div class="code-panel-header">
+          <span id="final-code-status"></span>
+          <button type="button" id="copy-final-code">copy</button>
+        </div>
+        <pre><code class="language-python" id="final-code"></code></pre>
+      </div>
+    </div>
+
+  </section>
+
+  <section class="empty-state" id="empty-state">
+    <p>No run yet. Dispatch a task above to see the crew work.</p>
+  </section>
+
+</main>
+
+<footer class="site-footer">
+  <p>DevCrew is a self-correcting multi-agent pipeline (LangGraph + Groq). Backend on Render may take up to 30s to wake from a cold start.</p>
+</footer>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/python.min.js"></script>
+<script src="script.js"></script>
+</body>
+</html>
